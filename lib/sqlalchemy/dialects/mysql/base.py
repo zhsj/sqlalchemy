@@ -1738,11 +1738,9 @@ class MySQLDialect(default.DefaultDialect):
 
     def get_isolation_level(self, connection):
         cursor = connection.cursor()
-        if self._is_mysql and self.server_version_info >= (5, 7, 20):
-            cursor.execute('SELECT @@transaction_isolation')
-        else:
-            cursor.execute('SELECT @@tx_isolation')
-        val = cursor.fetchone()[0]
+        cursor.execute("SHOW VARIABLES WHERE variable_name "
+                       "IN ('transaction_isolation', 'tx_isolation')")
+        val = cursor.fetchone()[1]
         cursor.close()
         if util.py3k and isinstance(val, bytes):
             val = val.decode()
